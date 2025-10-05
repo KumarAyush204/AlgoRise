@@ -42,12 +42,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Verify created tables
+      - name: Ensure essential tables exist
         run: |
-          echo "Verifying that all expected tables exist..."
-          TABLE_LIST=$(psql $DATABASE_URL -c "\dt public.*")
-          
-          echo "$TABLE_LIST" | grep -q 'streaks' && echo "✅ Table 'streaks' found." || { echo "❌ Table 'streaks' NOT found!"; exit 1; }
-          echo "$TABLE_LIST" | grep -q 'cf_handles' && echo "✅ Table 'cf_handles' found." || { echo "❌ Table 'cf_handles' NOT found!"; exit 1; }
-          echo "$TABLE_LIST" | grep -q 'cf_snapshots' && echo "✅ Table 'cf_snapshots' found." || { echo "❌ Table 'cf_snapshots' NOT found!"; exit 1; }
-
+          REQUIRED_TABLES=("streaks" "cf_handles" "cf_snapshots")
+          for tbl in "${REQUIRED_TABLES[@]}"; do
+            exists=$(psql -t -A $DATABASE_URL -c "SELECT to_regclass('public.$tbl');")
+            if [ "$exists" = "" ]; then
+              echo "❌ Table $tbl is missing!"
+              exit 1
+            else
+              echo "✅ Table $tbl exists."
+            fi
+          done

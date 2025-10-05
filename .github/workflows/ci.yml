@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       supabase:
-        image: supabase/postgres:15.1.0 # Supabase Postgres image
+        image: supabase/postgres:15.14.1.013 # Supabase Postgres image
         ports:
           - 5432:5432
         env:
